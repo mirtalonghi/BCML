@@ -1,5 +1,6 @@
 import pool from "./db.js";
 
+
 // Agregar un nuevo piloto
 export async function agregarPiloto({
   nombre_piloto, apellido_piloto, licencia_piloto,
@@ -10,7 +11,9 @@ export async function agregarPiloto({
       [nombre_piloto, apellido_piloto, licencia_piloto, new Date()]
     );
   } catch (error) {
+    console.log(error);
     throw { status: 500, message: "Error al crear el piloto" };
+    
   }
 }
 
@@ -40,25 +43,6 @@ export const obtenerDetallesPiloto = async (id) => {
     throw { status: 500, message: "Error al obtener detalles del piloto" };
   }
 };
-
-//Obtener formulario para actualizar piloto seleccionado
-export async function obtenerDetallesPilotoUpdate(id) {
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM piloto WHERE PilotoID = ?",
-      [id]
-    );
-
-    if (rows.length === 1) {
-      return rows[0];
-    } else {
-      throw { status: 404, message: "Piloto no encontrado" };
-    }
-  } catch (error) {
-    console.error(error);
-    throw { status: 500, message: "Error al obtener detalles del piloto" };
-  }
-}
 
 // Actualizar un piloto por ID
 export const actualizarPiloto = async (
