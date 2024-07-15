@@ -45,7 +45,17 @@ app.use(session({
 
 // Carga la página de inicio cambio app.get ("/") a ("/login y en render de res.render("inicio") a res.render ()
 app.get("/", (req, res) => {
-  res.render("inicio", {});
+	if (req.session.loggedin) {
+		res.render('inicio',{
+			login: true,
+			name: req.session.name			
+		});		
+	} else {
+		res.render('login', {
+			login:false,			
+		});				
+	}
+	res.end();
 });
 
 // Usa el enrutador para las rutas relacionadas con estudiantes

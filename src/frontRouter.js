@@ -1,6 +1,17 @@
 import express from "express";
 import http from "http";
 
+import {
+  agregarPiloto,
+  eliminarPiloto,
+  actualizarPiloto
+} from "./pilotoController.js";
+
+import {
+  addUser,
+  verifyUser,
+} from "./userController.js";
+
 const router = express.Router();
 
 router.get("/pilotos", async (request, response) => {
@@ -29,39 +40,15 @@ router.get("/pilotos", async (request, response) => {
 });
 
 // Registrar un nuevo piloto
-router.post("/pilotos", async (request, response) => {
-  const { nombre_piloto, apellido_piloto, licencia_piloto } = request.body;
+router.post("/pilotos", async (req, res) => {
+  const { nombre_piloto, apellido_piloto, licencia_piloto } = req.body;
 
   try {
-    const postData = JSON.stringify({ nombre_piloto, apellido_piloto, licencia_piloto });
-
-    const options = {
-      hostname: 'localhost',
-      port: 3600,
-      path: '/api/pilotos',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData),
-      },
-    };
-    
-    http.request(options, (res) => {
-      console.log("hola")
-      let data = [];
-      console.log(`STATUS: ${res.statusCode}`);
-      console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-      res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        data.push(chunk);
-      });
-      res.on('end', () => {
-        response.redirect("/pilotos");
-      });
-    });
+    await agregarPiloto({ nombre_piloto, apellido_piloto, licencia_piloto });
+    res.redirect("/pilotos");
   } catch (error) {
     const { status, message } = error;
-    response.status(status || 500).json({ error: message });
+    res.status(status || 500).json({ error: message });
   }
 });
 
@@ -69,7 +56,7 @@ router.post("/pilotos", async (request, response) => {
 router.get("/piloto/:id", async (request, response) => {
   const pilotoId = request.params.id;
   try {
-    http.get('http://localhost:3600/api/piloto' + pilotoId, res => {
+    http.get('http://localhost:3600/api/piloto/' + pilotoId, res => {
       let data = [];
       const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
       console.log('Status Code:', res.statusCode);
@@ -81,21 +68,23 @@ router.get("/piloto/:id", async (request, response) => {
       res.on('end', () => {
         console.log('Response ended: ');
         const piloto = JSON.parse(Buffer.concat(data).toString());
-        res.render("pages/detalles_piloto", { piloto });
+        console.log(piloto)
+        response.render("pages/detalles_piloto", { piloto });
       });
     }).on('error', err => {
       console.log('Error: ', err.message);
     });
   } catch (error) {
-    response.status(500).json({ error: message });
+    const { status, message } = error;
+    response.status(status || 500).json({ error: message });
   }
 });
 
 // Mostrar formulario para actualizar un piloto
 router.get("/formulario-actualizar-piloto/:id", async (request, response) => {
-  const pilotoID = request.params.id;
+  const pilotoId = request.params.id;
   try {
-    http.get('http://localhost:3600/api/piloto' + pilotoId, res => {
+    http.get('http://localhost:3600/api/piloto/' + pilotoId, res => {
       let data = [];
       const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
       console.log('Status Code:', res.statusCode);
@@ -107,13 +96,14 @@ router.get("/formulario-actualizar-piloto/:id", async (request, response) => {
       res.on('end', () => {
         console.log('Response ended: ');
         const piloto = JSON.parse(Buffer.concat(data).toString());
-        res.render("pages/update_piloto", { piloto });
+        response.render("pages/update_piloto", { piloto });
       });
     }).on('error', err => {
       console.log('Error: ', err.message);
     });
   } catch (error) {
-    response.status(500).json({ error: message });
+    const { status, message } = error;
+    response.status(status || 500).json({ error: message });
   }
 });
 
